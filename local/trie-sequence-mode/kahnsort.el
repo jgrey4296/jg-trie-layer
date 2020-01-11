@@ -1,3 +1,6 @@
+;;Module to topologically sort a graph
+;;Uses a buffer for the process queue
+;;input graph is a hashmap of alists: `((:name . X) (:inputs . Y) (:outputs . Z))
 (provide 'kahnsort)
 
 (defun kahn/is-terminal-p (terms str)
