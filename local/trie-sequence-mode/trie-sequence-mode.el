@@ -111,6 +111,8 @@
              (progn (skip-chars-backward "^|") (point))
              (progn (skip-chars-forward "^|") (point))
              :output))
+
+      ;;TODO: overlay unconnected cells
       )
     )
   )
