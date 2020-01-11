@@ -26,7 +26,6 @@
         inst-name
         )
 
-
     ;;if a dir chosen, get a name for the
     ;;inst, create a stub, create a data dir
     (if (f-dir? location)
@@ -46,31 +45,40 @@
 
     (setq jg-trie-layer/ide-pipeline-spec-buffer (format "%s.org" inst-name))
     (jg-trie-layer/maybe-build-data-loc)
-    (jg-trie-layer/init-ide-buffers-contents location inst-name)
-
-    (jg-trie-layer/load-directory-and-pipeline jg-trie-layer/ide-data-loc)
+    (jg-trie-layer/init-ide-buffers-contents location inst-name windows)
     ;;Save the window configuration
-    (setq jg-trie-layer/window-confguration (current-window-configuration))
+    (setq jg-trie-layer/window-configuration windows)
+
     ;;start python server
-    (jg-trie-layer/run-python-server)
-    ;;setup windows and their modes
-    ;; (in trie | trie-select |
-    ;; org | pipeline | explore | sequence)
+    (jg-trie-layer/run-python-server location)
+    (jg-trie-layer/load-directory-and-pipeline jg-trie-layer/ide-data-loc)
 
     )
 
-  (setq jg-trie-layer/trie-ide-running t)
+  (setq jg-trie-layer/trie-ide-is-running t)
   )
 (defun jg-trie-layer/stop-trie-ide ()
   (interactive)
   ;;Clear windows, unload data
+  (message "Shutting down Trie IDE")
   (jg-trie-layer/dump-to-files)
-  (setq jg-trie-layer/trie-ide-running nil)
+
+  (if (and jg-trie-layer/python-process
+           (processp jg-trie-layer/python-process)
+           (process-live-p jg-trie-layer/python-process))
+      (progn
+        (message "Closing Python Server")
+        (quit-process jg-trie-layer/python-process)
+        (kill-buffer jg-trie-layer/python-process-buffer-name)
+        (setq jg-trie-layer/python-process nil)
+        )
+    )
+  (setq jg-trie-layer/trie-ide-is-running nil)
+  (assert (not (jg-trie-layer/trie-ide-running-p)))
   )
 
 ;;Directory and buffer initialisation
 (defun jg-trie-layer/maybe-build-data-loc ( )
-  ;;TODO: If doesn't exist, make the data location subdirectories
   (if (not (f-exists? jg-trie-layer/ide-data-loc))
       (progn (mkdir jg-trie-layer/ide-data-loc)
              (mapc (lambda (x) (mkdir (f-join jg-trie-layer/ide-data-loc x)))
@@ -78,7 +86,7 @@
              )
     )
   )
-(defun jg-trie-layer/init-ide-buffers-contents (location inst-name)
+(defun jg-trie-layer/init-ide-buffers-contents (location inst-name windows)
   ;;create inst stub
   (if (not (f-exists? (f-join location jg-trie-layer/ide-pipeline-spec-buffer)))
       (progn
@@ -107,13 +115,13 @@
     )
 
   (with-current-buffer jg-trie-layer/inputs-buffer-name
-    (insert "AVAILABLE INPUTS:\n\n\n")
+    (insert "AVAILABLE INPUTS Layer 0:\n--------------------\n\n")
     )
   (with-current-buffer jg-trie-layer/outputs-buffer-name
-    (insert "AVAILABLE OUTPUTS:\n\n\n")
+    (insert "AVAILABLE OUTPUTS Layer 1:\n--------------------\n\n")
     )
   (with-current-buffer jg-trie-layer/logging-buffer-name
-    (insert "LOGGING:\n\n\n")
+    (insert "LOGGING:\n--------------------\n\n")
     )
   )
 (defun jg-trie-layer/build-working-group-buffer ()
@@ -127,8 +135,11 @@
 ;;Window setup
 (defun jg-trie-layer/reset-windows ()
   (interactive)
+  ;;TODO
   (if (and (jg-trie-layer/trie-ide-running-p) (window-configuration-p jg-trie-layer/window-configuration))
-      (set-window-configuration jg-trie-layer/window-configuration)
+      (progn (setq jg-trie-layer/window-configuration (jg-trie-layer/build-ide-window-layout))
+             (jg-trie-layer/init-ide-buffers-contents location inst-name jg-trie-layer/window-configuration)
+             )
     )
   )
 (cl-defun jg-trie-layer/build-ide-window-layout ()
@@ -162,114 +173,71 @@
   (display-buffer-in-side-window buffer `((side . ,(if left 'left 'right))))
   )
 
+(defun jg-trie-layer/redisplay-io-window (side content)
+  ;;delete all content in buffer
+  ;;insert content
+  ;;TODO
+  )
+
 ;;Loading and saving files
 (defun jg-trie-layer/load-directory-and-pipeline (loc)
   " Given a location, load into ide "
-  (let ((files (f-files loc nil t)))
-    (loop for file in files do
-          (let ((ftype (f-ext file)))
-            ;;Handle each file type and store it in its management hash-table
-            (cond ((equal ftype "rule"    ) )
-                  ((equal ftype "type"    ) )
-                  ((equal ftype "cc"      ) )
-                  ((equal ftype "pattern" ) )
-                  ((equal ftype "test"    ) )
-                  )
-            )
-          )
-    )
+  ;;Initialise data
+  (trie/init-data)
+
+  ;;command python
+
+
   )
 (defun jg-trie-layer/dump-to-files ()
   (interactive)
   ;;Get all trie-* mode buffers, and the pipeline spec
   ;;and write to subdirs of jg-trie-layer/ide-data-loc
-
-
-
-  )
-
-(defun jg-trie-layer/load-rule (x)
-  (message "loading %s" x)
-  (with-temp-buffer
-    (insert-file-contents x)
-    (goto-char (point-min))
-    (org-mode)
-    ;;parse and store information
-    ;;(org-map-tree jg-trie-layer/parse-rule)
+  (let ((buffers (buffer-list))
+        (curr-buff (current-buffer))
+        (special-buffers (list jg-trie-layer/inputs-buffer-name
+                               jg-trie-layer/outputs-buffer-name
+                               jg-trie-layer/working-group-buffer-name
+                               jg-trie-layer/logging-buffer-name))
+        )
+    (mapc (lambda (x)
+            (cond ((and (buffer-file-name x) (f-ancestor-of? jg-trie-layer/ide-data-loc (buffer-file-name x)))
+                   (progn (save-buffer)
+                          (if (not (equal curr-buff x))
+                              (kill-buffer x))))
+                  ((-contains? special-buffers (buffer-name x))
+                   (kill-buffer x))))
+          buffers)
     )
-  )
-(defun jg-trie-layer/load-type (x)
-  (message "loading %s" x)
-  (with-temp-buffer
-    (insert-file-contents x)
-    (goto-char (point-min))
-    (org-mode)
-    ;;parse and store information
-    )
-  )
-(defun jg-trie-layer/load-crosscut (x)
-  (message "loading %s" x)
-  (with-temp-buffer
-    (insert-file-contents x)
-    (goto-char (point-min))
-    (org-mode)
-    ;;parse and store information
-    )
-  )
-(defun jg-trie-layer/load-pattern (x)
-  (message "loading %s" x)
-  (with-temp-buffer
-    (insert-file-contents x)
-    (goto-char (point-min))
-    (org-mode)
-    ;;parse and store information
-    )
-  )
-(defun jg-trie-layer/load-test (x)
-  (message "loading %s" x)
-  (with-temp-buffer
-    (insert-file-contents x)
-    (goto-char (point-min))
-    (org-mode)
-    ;;parse and store information
-    )
-  )
-
-(defun jg-trie-layer/parse-rule (x)
-  ;;Get the heading
-  ;;get name
-  ;;Get tags
-  ;;Get conditions
-  ;;Get actions
-  )
-(defun jg-trie-layer/parse-type (x)
-  ;;Get name
-  ;;Get structure
-  ;;Get variables?
-  ;;Get Tags
-  )
-(defun jg-trie-layer/parse-crosscut (x)
-  ;;Get Name
-  ;;get type
-  ;;call subparser
-  )
-(defun jg-trie-layer/parse-pattern (x)
-  ;;Get Name
-  ;;Get Variables
-  ;;Get tags
-
-  )
-(defun jg-trie-layer/parse-test (x)
-  ;;Get name
-  ;;Get states
-  ;;Get Tags
   )
 
 ;;Python subprocess
-(defun jg-trie-layer/run-python-server ()
+(defun jg-trie-layer/run-python-server (loc)
   "Start a subprocess of python, loading the rule engine
 ready to set the pipeline and rulesets, and to test"
+  (message "Initializing Python Server")
+  ;;start python process
+  (setq trie/python-process (make-process :name "Rule IDE Process"
+                                          :buffer jg-trie-layer/python-process-buffer-name
+                                          :command (list jg-trie-layer/process-python-command
+                                                         jg-trie-layer/process-python-args)
+                                          :connection-type 'pipe
+                                          :filter 'jg-trie-layer/python-filter
+                                          :sentinel 'jg-trie-layer/python-sentinel
+                                          )
+        )
+  ;;initialize
+  (process-send-string trie/python-process (format "load {}\n" loc))
+  ;;populate emacs side data with loaded+parsed info
 
+  )
+(defun jg-trie-layer/python-filter (proc x)
+  ;; Filter to parse and handle python responses
+
+
+  )
+(defun jg-trie-layer/python-sentinel (proc x)
+  ;; Sentinel to handle python state changes
 
   )
 
@@ -286,64 +254,27 @@ ready to set the pipeline and rulesets, and to test"
 
   )
 
-;;Folding:
-;; (defun jg-trie-layer/toggle-all-defs ()
-;;   (interactive)
-;;   ;; goto start of file
-;;   (let* ((open-or-close 'evil-close-fold)
-;;          (current (point))
-;;          )
-;;     (save-excursion
-;;       (goto-char (point-min))
-;;       (python-nav-forward-defun)
-;;       (while (not (equal current (point)))
-;;         (setq current (point))
-;;         (if (jg-trie-layer/line-starts-with? "def ")
-;;             (funcall open-or-close))
-;;         (python-nav-forward-defun)
-;;         )
-;;       )
-;;     )
-;;   )
-;; (defun jg-trie-layer/close-class-defs ()
-;;   (interactive )
-;;   (save-excursion
-;;     (let* ((current (point)))
-;;       (python-nav-backward-defun)
-;;       (while (and (not (jg-trie-layer/line-starts-with? "class "))
-;;                   (not (equal current (point))))
-;;         (evil-close-fold)
-;;         (setq current (point))
-;;         (python-nav-backward-defun)
-;;         )
-;;       )
-;;     )
-;;   (save-excursion
-;;     (let* ((current (point)))
-;;       (python-nav-forward-defun)
-;;       (while (and (not (jg-trie-layer/line-starts-with? "class "))
-;;                   (not (equal current (point))))
-;;         (evil-close-fold)
-;;         (setq current (point))
-;;         (python-nav-forward-defun)
-;;         )
-;;       )
-;;     )
-;;   )
-;; (defun jg-trie-layer/setup-python-mode ()
-;;   (evil-define-key 'normal python-mode-map
-;;     (kbd "z d") 'jg-trie-layer/toggle-all-defs
-;;     (kbd "z C") 'jg-trie-layer/close-class-defs
-;;     ))
 
-;; (src (helm-make-source "My Find" 'helm-source-ffiles))
-;; (helm-ff-setup-update-hook)
-;; (setq location (helm :sources (helm-make-source "My Find" 'helm-source-ffiles
-;;                                 :action (helm-make-actions "Default" 'identity))
-;;                      :input (expand-file-name (helm-current-directory))
-;;                      :case-fold-search helm-file-name-case-fold-search
-;;                      :ff-transformer-show-only-basename
-;;                      helm-ff-transformer-show-only-basename
-;;                      :prompt "Find my files"
-;;                      :buffer "*helm my find*"
-;;                      )
+;;Python process functions
+
+(defun jg-trie-layer/python-server-load ()
+
+)
+(defun jg-trie-layer/python-server-query ()
+
+)
+(defun jg-trie-layer/python-server-inspect ()
+
+)
+(defun jg-trie-layer/python-server-test ()
+
+)
+(defun jg-trie-layer/python-server-quit ()
+
+)
+(defun jg-trie-layer/python-server-replace ()
+
+)
+(defun jg-trie-layer/python-server-report ()
+
+)
