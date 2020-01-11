@@ -10,36 +10,35 @@
   "Available Posts for the current rule")
 
 ;;Registered databases for lookup and tracking
-(defvar trie/rules '()
+(defvar trie/rules nil
   "Defined rules")
-(defvar trie/types '()
+(defvar trie/types nil
   "Loaded and Defined types")
-(defvar trie/crosscuts '()
+(defvar trie/crosscuts nil
   "Loaded and defined crosscuts")
-(defvar trie/patterns '()
+(defvar trie/patterns nil
   "Loaded and defined patterns")
-(defvar trie/tests '()
+(defvar trie/tests nil
   "Defined tests")
 
-(defvar trie/tags '()
+(defvar trie/sentences nil)
+(defvar trie/tags nil
   "Tag references to other objects")
-(defvar trie/channels '()
+(defvar trie/channels nil
   "Specified channels between layers")
 
-;;Functions
-;;CREATION
-(defun trie/find-or-create-rule ()
-  (interactive)
-  ;; helm
-  )
-(defun trie/find-or-create-type ()
-  (interactive)
-  )
-(defun trie/find-or-create-crosscut ()
-  (interactive)
-  )
-(defun trie/find-or-create-sequence ()
-  (interactive)
+(defun trie/init-data ()
+  (setq trie/rules (make-hash-table :test 'equal)
+        trie/types (make-hash-table :test 'equal)
+        trie/crosscuts (make-hash-table :test 'equal)
+        trie/patterns (make-hash-table :test 'equal)
+        trie/tests (make-hash-table :test 'equal)
+        trie/tags (make-hash-table :test 'equal)
+        trie/channels (make-hash-table :test 'equal)
+
+        trie/current-priors '()
+        trie/current-post '()
+        )
   )
 
 ;;Helm
@@ -49,40 +48,138 @@
   )
 (defun trie/find-rule (x)
   (message "Get rules: %s" (helm-marked-candidates))
+  ;;TODO
   ;;Retrieve rules
   ;;update working ruleset
   ;;open rule files
+  (let ((buf (if (get-buffer x) x (find-file x)))
+        (window (if (window-valid-p (plist-get jg-trie-layer/window-configuration :rule))
+                    (plist-get jg-trie-layer/window-configuration :rule)
+                  (selected-window)))
+        )
+    (window--display-buffer buf window 'window)
+    )
   )
 (defun trie/create-rule (x)
   (message "Creating Rule: %s" x)
+  ;;TODO
   ;;update working ruleset
   ;;open rule file
   ;;insert template
   ;;update rule hashtable
+  (let* ((trie-snippet-rule-name x)
+         (file-string (format "%s.rule" (s-replace "." "_" x)))
+         (rule-path (f-join jg-trie-layer/ide-data-loc "rules" file-string))
+         (window (if (window-valid-p (plist-get jg-trie-layer/window-configuration :rule))
+                     (plist-get jg-trie-layer/window-configuration :rule)
+                   (selected-window)))
+         )
+
+    (window--display-buffer (generate-new-buffer x) window 'window)
+    (with-current-buffer x
+      (trie-mode)
+      (yas-expand-snippet (yas-lookup-snippet "rule")
+                          (point-min) (point-max))
+      (write-file rule-path)
+      (puthash x rule-path trie/rules)
+      )
+    )
   )
+
+(defun trie/get-type-helm-candidates ()
+  (hash-table-keys trie/types)
+)
+(defun trie/find-type (x) )
+(defun trie/create-type (x) )
+
+(defun trie/get-pattern-helm-candidates ()
+  (hash-table-keys trie/patterns)
+  )
+(defun trie/find-pattern (x) )
+(defun trie/create-pattern (x) )
+
+(defun trie/get-test-helm-candidates ()
+  (hash-table-keys trie/tests)
+)
+(defun trie/find-test (x) )
+(defun trie/create-test (x) )
+
+(defun trie/get-sentence-helm-candidates ()
+  trie/sentences
+)
+(defun trie/add-sentence () )
+(defun trie/add-new-sentence () )
+
+(defun trie/get-crosscut-helm-candidates ()
+  (hash-table-keys trie/crosscuts)
+)
+(defun trie/add-crosscut ())
+
+(defun trie/get-tag-helm-candidates ()
+  trie/tags
+)
+(defun trie/toggle-tag (x)
+  ;;find tags
+  ;;remove selected from existing
+  ;;add remaining
+)
+(defun trie/create-tag(x)
+  ;;find tags
+  ;;add selected
+)
+
+
+(defun trie/get-channel-helm-candidates ()
+  trie/channels
+)
+(defun trie/create-channel () )
+(defun trie/find-channel ())
+
 ;;DELETION
 (defun trie/delete-rule ()
   (interactive)
+  ;;TODO
+  ;;remove from hashmap
+  ;;delete file
+  ;;remove from runtime
   )
 (defun trie/delete-type ()
   (interactive)
+  ;;TODO
   )
 (defun trie/delete-crosscut ()
   (interactive)
+  ;;TODO
   )
 (defun trie/delete-sequence ()
   (interactive)
+  ;;TODO
   )
 
 ;;VISUAL
-(defun trie/decrement-buffer-content-layer ()
+(defun trie/decrement-priors-layer ()
   (interactive)
+  ;;TODO
   )
-(defun trie/increment-buffer-content-layer ()
+(defun trie/increment-priors-layer ()
   (interactive)
+  ;;TODO
   )
-(defun trie/show-analysis-results ())
-(defun trie/show-side-buffer ())
+(defun trie/decrement-posts-layer ()
+  (interactive)
+  ;;TODO
+  )
+(defun trie/increment-posts-layer ()
+  (interactive)
+  ;;TODO
+  )
+
+(defun trie/show-analysis-results ()
+  ;;TODO
+  )
+(defun trie/show-side-buffer ()
+  ;;TODO
+  )
 (defun trie/write-io-info-buffer (data target)
   "Insert new data into IO buffers"
   (with-current-buffer (cond ((eq :input target)
@@ -94,9 +191,9 @@
     (jg_layer/clear-buffer)
     ;;Insert header + layer
     (insert (format "* Available %s:\n" (cond ((eq :input target)
-                                              "Inputs")
-                                             ((eq :output target)
-                                              "Outputs"))))
+                                               "Inputs")
+                                              ((eq :output target)
+                                               "Outputs"))))
 
     ;;Insert data strings
     (loop for x in (plist-get data :list) do
@@ -108,24 +205,59 @@
 ;;UPDATE
 (defun trie/update-buffer-contents ()
   (interactive)
+  ;;TODO
   )
-(defun trie/sort-conditions-and-actions ())
+(defun trie/sort-conditions-and-actions ()
+  ;;TODO
+  )
 ;;INSERTION
 (defun trie/el-string-helm ()
   (interactive)
+  ;;TODO
   )
 (defun trie/insert-tag ()
   (interactive)
+  ;;TODO
+  ;;select rule window
+  ;;find tags
+  ;;populate tags
+  ;;run tag helm
+
   )
-(defun trie/insert-transform ())
-(defun trie/insert-action ())
-(defun trie/insert-from-side-buffer ())
+(defun trie/insert-transform ()
+  ;;TODO
+  ;;select rule window
+  ;;find tags
+  ;;populate tags
+  ;;run transform helm
+
+  )
+(defun trie/insert-action ()
+  ;;TODO
+  ;;select rule window
+  ;;find tags
+  ;;populate tags
+  ;;run action helm
+  )
+(defun trie/insert-from-side-buffer ()
+  ;;TODO
+  )
 
 ;;REMOVAL
-(defun trie/remove-component ())
+(defun trie/remove-component ()
+  ;;TODO
+  )
 
 ;;CLEANUP
-(defun trie/cleanup ())
-(defun trie/write-rules-to-files ())
+(defun trie/cleanup ()
+  ;;TODO
+  )
+(defun trie/write-rules-to-files ()
+  ;;TODO
+  )
 ;;Analysis
-(defun trie/analyse-data ())
+(defun trie/analyse-data ()
+  ;;TODO
+  )
+
+(provide 'trie-management)
