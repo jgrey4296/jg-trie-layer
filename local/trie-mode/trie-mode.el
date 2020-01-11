@@ -2,6 +2,7 @@
 ;;For allowing code to run when the mode is run:
 (require 'dash)
 (require 'trie-face)
+(require 'trie-management)
 
 (defgroup trie-mode '() "Trie Mode Customizations")
 ;;--------------------
@@ -186,6 +187,7 @@
   (setq mode-name "TRIE")
   (run-mode-hooks)
   (outline-minor-mode)
+  (yas-minor-mode)
   )
 
 ;;todo later: set no longer needed variables to nil
