@@ -377,8 +377,37 @@ calculate the bounds that column falls within """
   )
 ;;--------------------------------------------------
 ;; Setup
+(defun trie-explore/explore-current-buffer ()
+  (interactive)
+  ;;insert current buffer into temp
+  (let* ((current (current-buffer))
+         (name (s-replace "*" "" (buffer-name current)))
+         (tree (make-trie-tree/node :name "__root"))
+        )
+    (with-temp-buffer
+      (insert-buffer-substring-no-properties current)
+      (goto-char (point-min))
+      (while (< (point) (point-max))
+        (trie-tree/tree-add tree (s-split-words (buffer-substring (line-beginning-position) (line-end-position)))
+        (forward-line)
+        )
+        )
+      )
+  ;;create new buffer, set it to explore mode,
+    (with-current-buffer-window (format "*%s-Explore*" name)
+                                'display-buffer-use-some-window
+                                'trie-explore/quit-action-make-writable
+                                (trie-explore-mode)
+                                (trie-explore/initial-setup tree name)
+                                )
+    )
+  )
 
-(defun trie-explore/initial-setup (&optional tree)
+(defun trie-explore/quit-action-make-writable (a b)
+  (with-current-buffer (window-buffer a)
+    (read-only-mode 0)))
+
+(defun trie-explore/initial-setup (&optional tree tree-name)
   """ An initial setup for a tree """
   (interactive)
   (cond
@@ -388,14 +417,14 @@ calculate the bounds that column falls within """
    )
 
   (let* ((tree-data (make-trie-explore/tree-data
-                     :name (read-string "Tree Name: ")
+                     :name (or tree-name (read-string "Tree Name: "))
                      :root tree))
          indent-amount
          )
     (setq trie-explore/current-data tree-data)
     (goto-char (point-max))
     ;; Put the basic data into the heading
-    (insert (propertize (format "\n\n** %s: " (trie-explore/tree-data-name trie-explore/current-data))
+    (insert (propertize (format "\n** %s: " (trie-explore/tree-data-name trie-explore/current-data))
                         :tree-data trie-explore/current-data))
     ;;store the indent
     (setq indent-amount (current-column))
@@ -410,6 +439,7 @@ calculate the bounds that column falls within """
     (insert (propertize "Root: " :layer 0))
     (push (current-column) (trie-explore/tree-data-indents trie-explore/current-data))
     (set-marker (trie-explore/tree-data-start-pos trie-explore/current-data) (point))
+    (insert "\n")
     ;;Draw all children, indented, with " : " after
     (trie-explore/draw-children)
     (goto-char (point-max))

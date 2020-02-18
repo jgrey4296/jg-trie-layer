@@ -99,7 +99,10 @@
 (defun jg-trie-layer/init-trie-explore-mode ()
   (use-package trie-explore-mode
     :after (trie-tree)
-    :commands (trie-explore-mode)
+    :commands (trie-explore-mode trie-explore/explore-current-buffer)
+    :init
+    (spacemacs/set-leader-keys
+      "a s e" 'trie-explore/explore-current-buffer)
     :config
     (spacemacs/declare-prefix "," "Trie-Explore Mode Prefix")
     (spacemacs/set-leader-keys-for-major-mode 'trie-explore-mode
