@@ -575,7 +575,7 @@ https://stackoverflow.com/questions/1249497 "
          (curr-value (org-table-get curr-line curr-col))
          )
     ;; remove it from the graph
-    ;;todo: remove from inputs and outputs
+    ;;TODO: remove from inputs and outputs
     (trie-sequence/remove-string curr-value)
 
     ;; update table

@@ -43,7 +43,7 @@
   :group 'trie-mode)
 (defface trie-closure
   '((t
-     :background "red"
+     :background "blue"
      ))
   "Face for Enclosed sections"
   :group 'trie-mode)
@@ -190,6 +190,6 @@
   (yas-minor-mode)
   )
 
-;;todo later: set no longer needed variables to nil
+;;TODO later: set no longer needed variables to nil
 
 (provide 'trie-mode)

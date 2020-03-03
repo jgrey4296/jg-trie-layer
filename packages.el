@@ -315,10 +315,9 @@
 
       )
     (evil-define-minor-mode-key 'normal 'trie-minor-mode
-      ;; (kbd "b") 'trie-minor/test-fun
       (kbd "[ [") 'jg-trie-layer/decrement-priors-layer
-      (kbd "[ ]") 'jg-trie-layer/increment-priors-layer
-      (kbd "] [") 'jg-trie-layer/decrement-posts-layer
+      (kbd "] [") 'jg-trie-layer/increment-priors-layer
+      (kbd "[ ]") 'jg-trie-layer/decrement-posts-layer
       (kbd "] ]") 'jg-trie-layer/increment-posts-layer
 
       )

@@ -48,7 +48,7 @@
   )
 (defun trie/find-rule (x)
   (message "Get rules: %s" (helm-marked-candidates))
-  ;;TODO
+  ;;TODO find rules
   ;;Retrieve rules
   ;;update working ruleset
   ;;open rule files
@@ -62,7 +62,7 @@
   )
 (defun trie/create-rule (x)
   (message "Creating Rule: %s" x)
-  ;;TODO
+  ;;TODO create rule
   ;;update working ruleset
   ;;open rule file
   ;;insert template
@@ -138,47 +138,47 @@
 ;;DELETION
 (defun trie/delete-rule ()
   (interactive)
-  ;;TODO
+  ;;TODO delete rule
   ;;remove from hashmap
   ;;delete file
   ;;remove from runtime
   )
 (defun trie/delete-type ()
   (interactive)
-  ;;TODO
+  ;;TODO delete type
   )
 (defun trie/delete-crosscut ()
   (interactive)
-  ;;TODO
+  ;;TODO delete crosscut
   )
 (defun trie/delete-sequence ()
   (interactive)
-  ;;TODO
+  ;;TODO delete sequence
   )
 
 ;;VISUAL
 (defun trie/decrement-priors-layer ()
   (interactive)
-  ;;TODO
+  ;;TODO decrement priors layer
   )
 (defun trie/increment-priors-layer ()
   (interactive)
-  ;;TODO
+  ;;TODO increment priors layer
   )
 (defun trie/decrement-posts-layer ()
   (interactive)
-  ;;TODO
+  ;;TODO decrement post layer
   )
 (defun trie/increment-posts-layer ()
   (interactive)
-  ;;TODO
+  ;;TODO increment post layer
   )
 
 (defun trie/show-analysis-results ()
-  ;;TODO
+  ;;TODO show analysis results
   )
 (defun trie/show-side-buffer ()
-  ;;TODO
+  ;;TODO show side buffer
   )
 (defun trie/write-io-info-buffer (data target)
   "Insert new data into IO buffers"
@@ -205,19 +205,19 @@
 ;;UPDATE
 (defun trie/update-buffer-contents ()
   (interactive)
-  ;;TODO
+  ;;TODO update buffer contents
   )
 (defun trie/sort-conditions-and-actions ()
-  ;;TODO
+  ;;TODO sort conditions and actions
   )
 ;;INSERTION
 (defun trie/el-string-helm ()
   (interactive)
-  ;;TODO
+  ;;TODO el string helm
   )
 (defun trie/insert-tag ()
   (interactive)
-  ;;TODO
+  ;;TODO insert tag
   ;;select rule window
   ;;find tags
   ;;populate tags
@@ -225,7 +225,7 @@
 
   )
 (defun trie/insert-transform ()
-  ;;TODO
+  ;;TODO insert transform
   ;;select rule window
   ;;find tags
   ;;populate tags
@@ -233,31 +233,31 @@
 
   )
 (defun trie/insert-action ()
-  ;;TODO
+  ;;TODO insert action
   ;;select rule window
   ;;find tags
   ;;populate tags
   ;;run action helm
   )
 (defun trie/insert-from-side-buffer ()
-  ;;TODO
+  ;;TODO insert from side buffer
   )
 
 ;;REMOVAL
 (defun trie/remove-component ()
-  ;;TODO
+  ;;TODO remove component
   )
 
 ;;CLEANUP
 (defun trie/cleanup ()
-  ;;TODO
+  ;;TODO cleanup
   )
 (defun trie/write-rules-to-files ()
-  ;;TODO
+  ;;TODO write rules to files
   )
 ;;Analysis
 (defun trie/analyse-data ()
-  ;;TODO
+  ;;TODO analyse data
   )
 
 (provide 'trie-management)

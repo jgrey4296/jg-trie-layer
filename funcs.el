@@ -135,7 +135,6 @@
 ;;Window setup
 (defun jg-trie-layer/reset-windows ()
   (interactive)
-  ;;TODO
   (if (and (jg-trie-layer/trie-ide-running-p) (window-configuration-p jg-trie-layer/window-configuration))
       (progn (setq jg-trie-layer/window-configuration (jg-trie-layer/build-ide-window-layout))
              (jg-trie-layer/init-ide-buffers-contents location inst-name jg-trie-layer/window-configuration)
@@ -176,7 +175,7 @@
 (defun jg-trie-layer/redisplay-io-window (side content)
   ;;delete all content in buffer
   ;;insert content
-  ;;TODO
+  ;;TODO redisplay io window
   )
 
 ;;Loading and saving files
@@ -184,7 +183,7 @@
   " Given a location, load into ide "
   ;;Initialise data
   (trie/init-data)
-
+  ;; TODO load directory and setup pipeline
   ;;command python
 
 
@@ -232,18 +231,18 @@ ready to set the pipeline and rulesets, and to test"
 
   )
 (defun jg-trie-layer/python-filter (proc x)
-  ;; Filter to parse and handle python responses
+  ;; TODO Filter to parse and handle python responses
 
 
   )
 (defun jg-trie-layer/python-sentinel (proc x)
-  ;; Sentinel to handle python state changes
+  ;; TODO Sentinel to handle python state changes
 
   )
 
 ;;Testing
 (defun jg-trie-layer/trigger-tests ()
-  " Trigger a Bank of tests "
+  " TODO Trigger a Bank of tests "
   (interactive)
   ;;with buffer rule logs
   ;;clear?
@@ -258,23 +257,23 @@ ready to set the pipeline and rulesets, and to test"
 ;;Python process functions
 
 (defun jg-trie-layer/python-server-load ()
-
+  ;; TODO python server load
 )
 (defun jg-trie-layer/python-server-query ()
-
+  ;; TODO python server query
 )
 (defun jg-trie-layer/python-server-inspect ()
-
+  ;; TODO python server inspect
 )
 (defun jg-trie-layer/python-server-test ()
-
+  ;; TODO python server test
 )
 (defun jg-trie-layer/python-server-quit ()
-
+  ;; TODO python server quit
 )
 (defun jg-trie-layer/python-server-replace ()
-
+  ;; TODO python server replace
 )
 (defun jg-trie-layer/python-server-report ()
-
+  ;; TODO Python server report
 )

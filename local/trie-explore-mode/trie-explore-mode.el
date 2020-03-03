@@ -257,7 +257,7 @@ calculate the bounds that column falls within """
   (save-excursion
     (trie-explore/draw-children)
     (trie-explore/draw-path)
-    ;;todo: make overlay
+    ;;TODO: make overlay
     )
   (if (> trie-explore/current-layer 0)
       (trie-explore/make-overlay (marker-position (car trie-explore/current-markers))
@@ -302,7 +302,7 @@ calculate the bounds that column falls within """
          )
     (trie-tree/node-add-child node value)
     )
-  ;;todo: move to the parent node before re-display
+  ;;TODO: move to the parent node before re-display
   (trie-explore/expand-entry)
   )
 
